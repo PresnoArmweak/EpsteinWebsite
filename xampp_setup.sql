@@ -1,24 +1,40 @@
--- phpMyAdmin SQL Dump
--- Database for the Epstein Archive wiki
+-- ============================================================
+-- LOCAL XAMPP SETUP — Epstein Archive
 --
--- IMPORTANT: This file does NOT create the database — your cPanel host
--- (e.g. Stablepoint) does that for you through the MySQL Database Wizard.
--- Before importing:
---   1. Create the database in cPanel (e.g. "archive" -> epsteina_archive)
---   2. Open phpMyAdmin and SELECT that database in the left sidebar
---   3. Use the Import tab to upload this file
+-- Single-file setup for a local XAMPP install. This file:
+--   1. Creates the database `epstein_archive_local`
+--   2. Imports the figures schema + stub entries
+--   3. Imports the sources table + starter sources
 --
--- For local XAMPP use, uncomment the two lines below:
+-- For the LIVE site you should NOT run this file. The live
+-- database (epsteina_archive) was already created via cPanel
+-- and seeded with epstein_archive.sql + the sources migration.
 --
--- CREATE DATABASE IF NOT EXISTS `epstein_archive` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
--- USE `epstein_archive`;
+-- ============================================================
+-- HOW TO USE
+-- ============================================================
+-- 1. Open http://localhost/phpmyadmin
+-- 2. Click the "Import" tab (do NOT click into a database first)
+-- 3. Choose this file (xampp_setup.sql) -> Go
+-- 4. Update data/db.php to point at "epstein_archive_local"
+--    when running locally (see comment block at the bottom).
+--
+-- To resync sources with the live site later, see the workflow
+-- in CITATIONS.md and the standalone sources_only.sql file.
+-- ============================================================
+
+CREATE DATABASE IF NOT EXISTS `epstein_archive_local`
+    DEFAULT CHARACTER SET utf8mb4
+    COLLATE utf8mb4_unicode_ci;
+
+USE `epstein_archive_local`;
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
 
--- --------------------------------------------------------
--- users
--- --------------------------------------------------------
+-- ============================================================
+-- TABLES (identical structure to the live DB)
+-- ============================================================
 
 DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (
@@ -32,10 +48,6 @@ CREATE TABLE `users` (
   UNIQUE KEY `username` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- --------------------------------------------------------
--- categories
--- --------------------------------------------------------
-
 DROP TABLE IF EXISTS `categories`;
 CREATE TABLE `categories` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -45,10 +57,6 @@ CREATE TABLE `categories` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `slug` (`slug`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
--- figures (one entry per person/entity)
--- --------------------------------------------------------
 
 DROP TABLE IF EXISTS `figures`;
 CREATE TABLE `figures` (
@@ -69,20 +77,38 @@ CREATE TABLE `figures` (
   CONSTRAINT `fk_figures_category` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- --------------------------------------------------------
--- Seed: users
---   admin  / admin123
---   member / member123
--- (hashes generated with php password_hash($pw, PASSWORD_DEFAULT))
--- --------------------------------------------------------
+DROP TABLE IF EXISTS `sources`;
+CREATE TABLE `sources` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `type` enum(
+      'web','periodical','book','court_filing',
+      'gov_doc','film','interview','other'
+  ) NOT NULL DEFAULT 'web',
+  `authors` varchar(255) DEFAULT NULL,
+  `title` varchar(512) NOT NULL,
+  `container` varchar(255) DEFAULT NULL,
+  `publisher` varchar(255) DEFAULT NULL,
+  `date_published` varchar(64) DEFAULT NULL,
+  `url` varchar(1024) DEFAULT NULL,
+  `date_accessed` varchar(64) DEFAULT NULL,
+  `location` varchar(255) DEFAULT NULL,
+  `notes` text DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `type` (`type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
+-- USERS  (admin / admin123 ; member / member123)
+-- ============================================================
 
 INSERT INTO `users` (`id`, `username`, `full_name`, `password_hash`, `role`) VALUES
 (1, 'admin',  'Archive Administrator', '$2y$10$mxVi0XTEi00PmqE7S7uSmexFa7SOOMcRbjVBv8OSRGyvkGvb7MGoO', 'admin'),
 (2, 'member', 'Registered Reader',     '$2y$10$lNCOAKeT0I.SPssYx2vzGOcDKlGqTvamb/gxBzXjBSyHGzCK9rr2S', 'member');
 
--- --------------------------------------------------------
--- Seed: categories
--- --------------------------------------------------------
+-- ============================================================
+-- CATEGORIES
+-- ============================================================
 
 INSERT INTO `categories` (`id`, `name`, `slug`, `description`) VALUES
 (1, 'Principals',   'principals',   'The convicted and the directly charged.'),
@@ -92,28 +118,14 @@ INSERT INTO `categories` (`id`, `name`, `slug`, `description`) VALUES
 (5, 'Institutions', 'institutions', 'Banks, schools, properties, charities, and organizations referenced in the record.'),
 (6, 'Other',        'other',        'Witnesses, journalists, and other notable persons whose names appear in case materials.');
 
--- --------------------------------------------------------
--- Seed: figures (stubs only — bodies are blank for the editor)
---
--- Each row carries:
---   - name           (as it appears in court documents / mainstream press)
---   - slug           (URL-safe version)
---   - category_id    (which category this entry belongs to)
---   - lifespan       (only filled where it is part of the public record)
---   - nationality    (left NULL — fill in as you write each entry)
---   - known_for      (one neutral line: "how this person appears in the case")
---   - summary        (one neutral sentence; you can rewrite it)
---   - biography      ("" — you write the full entry yourself)
---   - is_restricted  (0 = public, 1 = members only)
---   - is_admin_only  (1 = admin dashboard only; used here for an
---                       internal "editorial notes" placeholder)
--- --------------------------------------------------------
+-- ============================================================
+-- FIGURE STUBS
+-- ============================================================
 
 INSERT INTO `figures`
 (`id`, `name`, `slug`, `category_id`, `lifespan`, `nationality`, `known_for`,
  `summary`, `biography`, `is_restricted`, `is_admin_only`) VALUES
 
--- Principals -----------------------------------------------------------------
 (1, 'Jeffrey Epstein', 'jeffrey-epstein', 1, '1953 – 2019', NULL,
  'Convicted sex offender; 2019 federal indictment for sex trafficking minors.',
  'Stub entry. Replace this summary with your own neutral one-line description.',
@@ -124,7 +136,6 @@ INSERT INTO `figures`
  'Stub entry. Replace this summary with your own neutral one-line description.',
  '', 0, 0),
 
--- Associates ----------------------------------------------------------------
 (3, 'Associate Stub A', 'associate-stub-a', 2, NULL, NULL,
  'Named in publicly released flight logs and/or court filings.',
  'Stub entry. Rename this row and write the entry. Set is_restricted = 1 if you want it members-only.',
@@ -140,11 +151,6 @@ INSERT INTO `figures`
  'Stub entry. Rename and fill in.',
  '', 0, 0),
 
--- Accusers ------------------------------------------------------------------
--- These stubs are intentionally generic. Use real names only for accusers
--- who have publicly self-identified (e.g. through filed lawsuits, on-record
--- interviews, or signed affidavits). For accusers who remain anonymous in
--- the public record (Jane/John Doe filings), keep them anonymous here.
 (6, 'Accuser Stub A', 'accuser-stub-a', 3, NULL, NULL,
  'Self-identified accuser; testimony and/or civil filing in the public record.',
  'Stub entry. Replace name only if the person has self-identified publicly.',
@@ -160,7 +166,6 @@ INSERT INTO `figures`
  'Stub entry. This row is for an aggregate overview — do not name individuals who have not self-identified.',
  '', 1, 0),
 
--- Officials -----------------------------------------------------------------
 (9, 'Alexander Acosta', 'alexander-acosta', 4, NULL, NULL,
  'Then-U.S. Attorney for the Southern District of Florida; signed the 2008 non-prosecution agreement.',
  'Stub entry. Fill in.',
@@ -176,7 +181,6 @@ INSERT INTO `figures`
  'Stub entry. Rename and fill in.',
  '', 0, 0),
 
--- Institutions --------------------------------------------------------------
 (12, 'Little Saint James', 'little-saint-james', 5, NULL, NULL,
  'Private island in the U.S. Virgin Islands owned by Epstein.',
  'Stub entry. Fill in.',
@@ -202,7 +206,6 @@ INSERT INTO `figures`
  'Stub entry. Rename and fill in.',
  '', 0, 0),
 
--- Other ---------------------------------------------------------------------
 (17, 'Investigative Reporter Stub', 'reporter-stub', 6, NULL, NULL,
  'Journalist whose reporting materially advanced the public record on this case.',
  'Stub entry. Rename and fill in.',
@@ -213,7 +216,6 @@ INSERT INTO `figures`
  'Stub entry. Rename and fill in.',
  '', 0, 0),
 
--- Editorial admin-only entry ------------------------------------------------
 (19, 'Editorial Notes', 'editorial-notes', 6, NULL, NULL,
  'Internal sourcing standards and style guide.',
  'Admin-only placeholder. Use this entry to keep your sourcing rules visible only to admins.',
@@ -228,3 +230,63 @@ INSERT INTO `figures`
 4. Being named in flight logs, address books, or photographs is not, on its own, evidence of wrongdoing. State the underlying fact precisely; do not let layout or proximity imply guilt.
 
 5. Update entries when new primary documents are released; mark major revisions with a date.', 1, 1);
+
+-- ============================================================
+-- SOURCES — must match the live site IDs so the same [n] markers
+-- work both places. Always edit sources here AND on the live DB
+-- using the same id; or use the sync workflow in CITATIONS.md.
+-- ============================================================
+
+INSERT INTO `sources`
+(`id`, `type`, `authors`, `title`, `container`, `publisher`,
+ `date_published`, `url`, `date_accessed`, `location`, `notes`)
+VALUES
+
+(1, 'court_filing', NULL,
+ 'United States v. Jeffrey Epstein, Indictment',
+ 'United States District Court, Southern District of New York',
+ NULL, '2 July 2019',
+ 'https://www.justice.gov/usao-sdny/press-release/file/1180816/dl',
+ NULL, 'Case No. 1:19-cr-00490', NULL),
+
+(2, 'court_filing', NULL,
+ 'United States v. Ghislaine Maxwell, Superseding Indictment',
+ 'United States District Court, Southern District of New York',
+ NULL, '29 Mar. 2021',
+ 'https://www.justice.gov/usao-sdny/press-release/file/1380706/dl',
+ NULL, 'Case No. 1:20-cr-00330', NULL),
+
+(3, 'periodical', 'Brown, Julie K.',
+ 'Perversion of Justice',
+ 'Miami Herald', NULL, '28 Nov. 2018',
+ 'https://www.miamiherald.com/news/local/article220097825.html',
+ NULL, NULL, 'Three-part investigative series'),
+
+(4, 'court_filing', NULL,
+ 'Non-Prosecution Agreement',
+ 'United States Attorney''s Office, Southern District of Florida',
+ NULL, '24 Sept. 2007',
+ NULL, NULL, NULL,
+ 'The 2007/2008 NPA signed under U.S. Attorney Alexander Acosta'),
+
+(5, 'gov_doc', NULL,
+ 'Report on the Department of Justice''s Handling of the Jeffrey Epstein Investigation',
+ 'Office of Professional Responsibility, U.S. Department of Justice',
+ NULL, 'Nov. 2020',
+ NULL, NULL, NULL, NULL);
+
+-- ============================================================
+-- AFTER IMPORT: configure data/db.php for local use
+-- ============================================================
+--
+-- Edit data/db.php and set:
+--
+--   $name = 'epstein_archive_local';
+--   $user = 'root';
+--   $pass = '';                 // XAMPP default; empty unless you set one
+--
+-- Keep a separate copy of db.php for the live host. The simplest
+-- pattern is to NOT commit db.php at all and keep two copies on
+-- your machine, e.g. data/db.live.php and data/db.local.php,
+-- then rename whichever you need before deploying.
+-- ============================================================

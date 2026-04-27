@@ -26,6 +26,7 @@
 
     <div class="historica-sidebar__footer">
         <a href="?view=about" class="historica-sidebar__about">About this archive &rarr;</a>
+        <a href="?view=sources" class="historica-sidebar__about">Sources &amp; bibliography &rarr;</a>
         <?php if (!is_logged_in()): ?>
             <p class="historica-sidebar__hint">
                 Some entries are reserved for signed-in readers.

@@ -1016,3 +1016,121 @@ a:hover {
     .historica-list__meta { align-items: flex-start; text-align: left; }
     .historica-hero::after { display: none; }
 }
+
+/* ===== citation system =================================================== */
+
+/* Inline citation marker rendered into entry text */
+sub.cite {
+    font-family: var(--mono);
+    font-size: .65em;
+    line-height: 0;
+    vertical-align: sub;
+    color: var(--manila);
+    letter-spacing: .04em;
+    margin: 0 .08em;
+    white-space: nowrap;
+}
+sub.cite a.cite__link {
+    color: var(--manila);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--manila-deep);
+    padding: 0 .12em;
+    transition: color .15s ease, background .15s ease, border-color .15s ease;
+}
+sub.cite a.cite__link:hover {
+    color: var(--bg);
+    background: var(--classified);
+    border-bottom-color: var(--classified);
+}
+sub.cite .cite__loc {
+    color: var(--ink-mute);
+    font-size: .9em;
+    margin-left: .15em;
+}
+sub.cite .cite--missing {
+    color: var(--redact);
+    border-bottom: 1px dotted var(--redact);
+}
+
+/* Highlight the targeted source when arriving from a [n] click */
+.historica-sources__item:target {
+    background: var(--bg-card-hi);
+    border-left-color: var(--classified) !important;
+}
+.historica-sources__item:target .historica-sources__num {
+    color: var(--classified);
+}
+
+/* ===== sources page ====================================================== */
+
+.historica-sources {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    counter-reset: source;
+    border-top: 1px solid var(--line);
+}
+
+.historica-sources__item {
+    display: grid;
+    grid-template-columns: 4rem 1fr auto;
+    gap: 1.2rem;
+    align-items: baseline;
+    padding: 1.1rem 0 1.1rem 1rem;
+    border-bottom: 1px solid var(--line-soft);
+    border-left: 3px solid transparent;
+    transition: border-color .2s ease, background .2s ease;
+    scroll-margin-top: 1rem;
+}
+.historica-sources__item:hover {
+    background: var(--bg-card);
+    border-left-color: var(--manila);
+}
+
+.historica-sources__num {
+    font-family: var(--mono);
+    font-size: .9rem;
+    color: var(--manila);
+    letter-spacing: .04em;
+    font-weight: 600;
+}
+
+.historica-sources__entry {
+    font-family: var(--serif);
+    font-size: 1.02rem;
+    color: var(--ink-soft);
+    line-height: 1.5;
+    word-break: break-word;
+}
+.historica-sources__entry em {
+    color: var(--ink);
+    font-style: italic;
+}
+.historica-sources__entry a {
+    color: var(--manila);
+    word-break: break-all;
+}
+
+.historica-sources__type {
+    font-family: var(--mono);
+    font-size: .62rem;
+    text-transform: uppercase;
+    letter-spacing: .2em;
+    color: var(--ink-mute);
+    border: 1px solid var(--line);
+    padding: .15rem .55rem;
+    align-self: start;
+    white-space: nowrap;
+}
+
+@media (max-width: 700px) {
+    .historica-sources__item {
+        grid-template-columns: 3rem 1fr;
+        gap: .8rem;
+    }
+    .historica-sources__type {
+        grid-column: 2;
+        justify-self: start;
+        margin-top: .35rem;
+    }
+}

@@ -91,6 +91,10 @@ if ($view === 'home') {
 if ($view === 'admin') {
     require_admin();
 }
+
+if ($view === 'sources') {
+    $sources = sources_all();
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -128,6 +132,8 @@ if ($view === 'admin') {
                 include __DIR__ . '/partials/search.php';
             } elseif ($view === 'admin') {
                 include __DIR__ . '/partials/admin.php';
+            } elseif ($view === 'sources') {
+                include __DIR__ . '/partials/sources.php';
             } elseif ($view === 'about') {
                 include __DIR__ . '/partials/about.php';
             } else {

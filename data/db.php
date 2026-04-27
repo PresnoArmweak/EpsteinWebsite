@@ -1,7 +1,14 @@
 <?php
 // data/db.php
-// PDO connection helper. Defaults match a fresh XAMPP install
-// (host=localhost, user=root, no password, MySQL on port 3306).
+// PDO connection helper.
+//
+// Auto-detects whether the site is running locally (XAMPP) or on the
+// live Stablepoint host, and uses the matching credentials. This way
+// the same db.php file works in both environments.
+//
+// IMPORTANT: keep your real live password in this file ONLY on the
+// live server. When syncing files local->live, either edit it after
+// upload, or keep db.php out of the synced set.
 
 function db(): PDO
 {
@@ -10,11 +17,35 @@ function db(): PDO
         return $pdo;
     }
 
-    $host = '127.0.0.1';
-    $port = '3306';
-    $name = 'epstein_archive';
-    $user = 'root';
-    $pass = '';
+    // ------------------------------------------------------------------
+    // Decide which environment we're in.
+    //
+    // XAMPP serves the site over localhost / 127.0.0.1 / ::1, anything
+    // else is treated as live (epsteinarchive.info or your test domain).
+    // ------------------------------------------------------------------
+    $host_header = strtolower((string)($_SERVER['HTTP_HOST'] ?? ''));
+    $is_local = (
+        $host_header === ''                               // CLI
+        || str_starts_with($host_header, 'localhost')
+        || str_starts_with($host_header, '127.0.0.1')
+        || str_starts_with($host_header, '[::1]')
+    );
+
+    if ($is_local) {
+        // ---- LOCAL: XAMPP defaults --------------------------------
+        $host = '127.0.0.1';
+        $port = '3306';
+        $name = 'epstein_archive_local';
+        $user = 'root';
+        $pass = '';
+    } else {
+        // ---- LIVE: Stablepoint cPanel ----------------------------
+        $host = '127.0.0.1';
+        $port = '3306';
+        $name = 'epsteina_archive';
+        $user = 'epsteina_archive';
+        $pass = '@+?mcwXX.DtU;ZaI';
+    }
 
     $dsn = "mysql:host={$host};port={$port};dbname={$name};charset=utf8mb4";
     $pdo = new PDO($dsn, $user, $pass, [

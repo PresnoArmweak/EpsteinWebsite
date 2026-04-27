@@ -44,11 +44,7 @@
                     echo '<p class="historica-empty" style="padding:1.5rem;text-align:left;margin:0;">'
                        . '<em>This entry is a stub. The full text has not been written yet.</em></p>';
                 } else {
-                    $paragraphs = preg_split('/\n\s*\n/', $body);
-                    foreach ($paragraphs as $p) {
-                        if (trim($p) === '') continue;
-                        echo '<p>' . e($p) . '</p>';
-                    }
+                    echo render_entry_body($body);
                 }
                 ?>
 
@@ -56,7 +52,9 @@
                     <strong>Read-only entry.</strong>
                     The Epstein Archive does not accept public edits or new
                     submissions. Entries are maintained by the editorial team
-                    and cite the public record.
+                    and cite the public record. See the
+                    <a href="?view=sources">sources page</a> for the full
+                    bibliography.
                 </div>
             </div>
 
